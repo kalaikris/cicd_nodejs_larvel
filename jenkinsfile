@@ -1,0 +1,36 @@
+pipeline{
+    agent{
+        label "linux-slave"
+    }
+
+    stages{
+        stage("git checkout"){
+            steps{
+                git branch: 'main', url: 'https://github.com/kalaikris/testingapplication.git'
+            }
+        }
+        stage("Docker-Image-build"){
+            steps{
+                sh '''cd /home/ubuntu/jenkins/workspace/docker-pipeline01/node
+                docker build -t kalaikris/nodejs:latest .
+                cd /home/ubuntu/jenkins/workspace/docker-pipeline01/example-app
+                docker build -t kalaikris/larvel:latest .'''
+            }
+        }
+        stage("Dockerimage-pushed-dockerhub"){
+            steps{
+               sh '''
+               docker push kalaikris/nodejs:latest
+               docker push kalaikris/larvel:latest'''
+            }
+        }
+        stage("Deploy-into-production"){
+            steps{
+               sh '''docker container run -p 3000:3000 -d kalaikris/nodejs:latest
+               docker container run -p 8000:8000 -d kalaikris/larvel:latest'''
+            }
+        
+        
+    }
+} 
+}
